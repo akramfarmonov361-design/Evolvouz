@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { adminLogin, adminLogout, getCurrentAdmin, authenticateAdmin } from "./adminAuth";
+import { adminLogin, adminLogout, getCurrentAdmin, authenticateAdmin, loginRateLimit } from "./adminAuth";
 import { generateBusinessRecommendations, generateServiceContent } from "./services/openai";
 import { insertServiceSchema, insertRecommendationSchema, insertInquirySchema, insertOrderSchema, publicInsertOrderSchema, insertBlogPostSchema, insertClientSchema, updateServiceSchema, updateOrderSchema, updateClientSchema, updateBlogPostSchema } from "@shared/schema";
 import { z } from "zod";
@@ -24,7 +24,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin authentication routes
-  app.post('/api/auth/login', adminLogin);
+  app.post('/api/auth/login', loginRateLimit, adminLogin);
   app.post('/api/auth/logout', adminLogout);
   app.get('/api/auth/admin', authenticateAdmin, getCurrentAdmin);
 
