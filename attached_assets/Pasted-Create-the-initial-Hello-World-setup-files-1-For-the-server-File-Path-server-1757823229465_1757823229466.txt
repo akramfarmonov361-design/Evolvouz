@@ -1,0 +1,79 @@
+Create the initial "Hello World" setup files:
+
+1.  **For the server:**
+    - **File Path:** `/server/src/index.ts`
+    - **Content:**
+      ```typescript
+      import express from 'express';
+      import cors from 'cors';
+      import helmet from 'helmet';
+
+      const app = express();
+      const PORT = process.env.PORT || 5000;
+
+      app.use(helmet());
+      app.use(cors({
+        origin: process.env.CLIENT_URL || 'http://localhost:5173',
+        credentials: true
+      }));
+      app.use(express.json());
+
+      app.get('/api/health', (req, res) => {
+        res.json({ status: 'Server is running!' });
+      });
+
+      app.listen(PORT, () => {
+        console.log(`Server is listening on port ${PORT}`);
+      });
+      ```
+
+2.  **For the client:**
+    - **File Path:** `/client/src/index.css`
+    - **Content:**
+      ```css
+      @tailwind base;
+      @tailwind components;
+      @tailwind utilities;
+      ```
+    - **File Path:** `/client/src/main.tsx`
+    - **Content:**
+      ```typescript
+      import React from 'react';
+      import ReactDOM from 'react-dom/client';
+      import App from './App';
+      import './index.css';
+
+      ReactDOM.createRoot(document.getElementById('root')!).render(
+        <React.StrictMode>
+          <App />
+        </React.StrictMode>
+      );
+      ```
+    - **File Path:** `/client/src/App.tsx`
+    - **Content:**
+      ```typescript
+      import { useEffect, useState } from 'react';
+
+      function App() {
+        const [message, setMessage] = useState('Loading...');
+
+        useEffect(() => {
+          // Note: In Replit, the server URL is generated dynamically.
+          // We will configure a proxy later to simplify this.
+          // For now, this will fail, but we'll fix it.
+          fetch('/api/health')
+            .then(res => res.json())
+            .then(data => setMessage(data.status))
+            .catch(() => setMessage('Failed to connect to server'));
+        }, []);
+
+        return (
+          <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
+            <h1 className="text-3xl font-bold">Client is running!</h1>
+            <p className="mt-4 text-xl">Server status: {message}</p>
+          </div>
+        );
+      }
+
+      export default App;
+      ```

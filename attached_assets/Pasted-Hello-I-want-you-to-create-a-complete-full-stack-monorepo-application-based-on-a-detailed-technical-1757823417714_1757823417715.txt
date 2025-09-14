@@ -1,0 +1,369 @@
+Hello. I want you to create a complete full-stack monorepo application based on a detailed technical specification. Please follow these instructions precisely.
+
+**Phase 1: Create Project Structure and Configuration Files**
+
+First, create the entire directory structure and all necessary configuration files.
+
+1.  **Create the root `package.json`:**
+    -   **Path:** `/package.json`
+    -   **Content:**
+        ```json
+        {
+          "name": "evolvo-monorepo",
+          "version": "1.0.0",
+          "private": true,
+          "scripts": {
+            "dev": "npm run dev --workspace=server & npm run dev --workspace=client",
+            "build": "npm run build --workspace=client && npm run build --workspace=server",
+            "start": "npm start --workspace=server",
+            "db:generate": "drizzle-kit generate:pg",
+            "db:push": "drizzle-kit push:pg"
+          },
+          "workspaces": [
+            "client",
+            "server",
+            "shared"
+          ]
+        }
+        ```
+
+2.  **Create the server `package.json`:**
+    -   **Path:** `/server/package.json`
+    -   **Content:**
+        ```json
+        {
+          "name": "server",
+          "version": "1.0.0",
+          "main": "dist/index.js",
+          "scripts": {
+            "dev": "tsx watch src/index.ts",
+            "build": "tsup src/index.ts --format cjs --dts --clean",
+            "start": "node dist/index.js"
+          }
+        }
+        ```
+
+3.  **Create the client `package.json`:**
+    -   **Path:** `/client/package.json`
+    -   **Content:**
+        ```json
+        {
+          "name": "client",
+          "version": "1.0.0",
+          "private": true,
+          "scripts": {
+            "dev": "vite",
+            "build": "tsc && vite build",
+            "preview": "vite preview"
+          }
+        }
+        ```
+
+4.  **Create the shared `package.json` for Drizzle schemas:**
+    -   **Path:** `/shared/package.json`
+    -   **Content:**
+        ```json
+        {
+          "name": "shared",
+          "version": "1.0.0"
+        }
+        ```
+
+5.  **Create TypeScript config files:**
+    -   **Path:** `/server/tsconfig.json`
+        ```json
+        {
+          "compilerOptions": {
+            "target": "ES2020",
+            "module": "commonjs",
+            "rootDir": "src",
+            "outDir": "dist",
+            "strict": true,
+            "esModuleInterop": true,
+            "skipLibCheck": true,
+            "forceConsistentCasingInFileNames": true,
+            "resolveJsonModule": true
+          },
+          "include": ["src/**/*"],
+          "exclude": ["node_modules"]
+        }
+        ```
+    -   **Path:** `/client/tsconfig.json`
+        ```json
+        {
+          "compilerOptions": {
+            "target": "ES2020",
+            "useDefineForClassFields": true,
+            "lib": ["ES2020", "DOM", "DOM.Iterable"],
+            "module": "ESNext",
+            "skipLibCheck": true,
+            "moduleResolution": "bundler",
+            "allowImportingTsExtensions": true,
+            "resolveJsonModule": true,
+            "isolatedModules": true,
+            "noEmit": true,
+            "jsx": "react-jsx",
+            "strict": true,
+            "paths": {
+              "@/*": ["./src/*"]
+            }
+          },
+          "include": ["src"],
+          "references": [{ "path": "./tsconfig.node.json" }]
+        }
+        ```
+    -   **Path:** `/client/tsconfig.node.json`
+        ```json
+        {
+          "compilerOptions": {
+            "composite": true,
+            "skipLibCheck": true,
+            "module": "ESNext",
+            "moduleResolution": "bundler",
+            "allowSyntheticDefaultImports": true
+          },
+          "include": ["vite.config.ts"]
+        }
+        ```
+
+6.  **Create Client-side build and style configs:**
+    -   **Path:** `/client/vite.config.ts`
+        ```typescript
+        import { defineConfig } from 'vite';
+        import react from '@vitejs/plugin-react';
+        import path from 'path';
+
+        export default defineConfig({
+          plugins: [react()],
+          resolve: {
+            alias: {
+              "@": path.resolve(__dirname, "./src"),
+            },
+          },
+          server: {
+            proxy: {
+              '/api': {
+                target: 'http://localhost:5000', // This will be the server URL
+                changeOrigin: true,
+              },
+            },
+          },
+        });
+        ```
+    -   **Path:** `/client/tailwind.config.js`
+        ```javascript
+        /** @type {import('tailwindcss').Config} */
+        export default {
+          content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
+          theme: { extend: {} },
+          plugins: [require("tailwindcss-animate")],
+        }
+        ```
+    -   **Path:** `/client/postcss.config.js`
+        ```javascript
+        export default {
+          plugins: {
+            tailwindcss: {},
+            autoprefixer: {},
+          },
+        }
+        ```
+
+7.  **Configure Replit:**
+    -   **Path:** `/.replit`
+        ```
+        run = "npm install --workspaces && npm run dev"
+        entrypoint = "server/src/index.ts"
+
+        [packager]
+        language = "typescript"
+
+        [nix]
+        channel = "stable-23_11"
+
+        [[ports]]
+        localPort = 5173
+        externalPort = 80
+        ```
+
+**Phase 2: Implement Backend (Server)**
+
+Now, create the backend files.
+
+1.  **Create the main server file:**
+    -   **Path:** `/server/src/index.ts`
+    -   **Content:**
+        ```typescript
+        import express from 'express';
+        import cors from 'cors';
+        import helmet from 'helmet';
+
+        const app = express();
+        const PORT = process.env.PORT || 5000;
+
+        app.use(helmet());
+        app.use(cors());
+        app.use(express.json());
+
+        app.get('/api/health', (req, res) => {
+          res.json({ status: 'OK', message: 'Evolvo.uz server is running perfectly!' });
+        });
+
+        app.listen(PORT, () => {
+          console.log(`Server is listening on port ${PORT}`);
+        });
+        ```
+
+2.  **Create the Drizzle ORM Schema in the `shared` directory:**
+    -   **Path:** `/shared/schema.ts`
+    -   **Content:**
+        ```typescript
+        import { pgTable, serial, varchar, text, boolean, timestamp, real } from 'drizzle-orm/pg-core';
+
+        export const users = pgTable('users', {
+          id: serial('id').primaryKey(),
+          email: varchar('email', { length: 256 }).unique().notNull(),
+          password: varchar('password', { length: 256 }).notNull(),
+          name: varchar('name', { length: 256 }),
+          role: varchar('role', { length: 50 }).default('admin'),
+        });
+
+        export const services = pgTable('services', {
+          id: varchar('id').primaryKey(), // UUID
+          title: varchar('title', { length: 255 }).notNull(),
+          description: text('description'),
+          shortDescription: varchar('short_description', { length: 500 }),
+          price: varchar('price', { length: 100 }),
+          features: text('features').array(),
+          category: varchar('category', { length: 100 }),
+          aiPrompt: text('ai_prompt'),
+          isActive: boolean('is_active').default(true),
+        });
+        ```
+
+3. **Create the Drizzle config file:**
+    - **Path:** `/drizzle.config.ts`
+    - **Content:**
+        ```typescript
+        import type { Config } from 'drizzle-kit';
+        import 'dotenv/config';
+
+        export default {
+          schema: './shared/schema.ts',
+          out: './drizzle',
+          driver: 'pg',
+          dbCredentials: {
+            connectionString: process.env.DATABASE_URL!,
+          },
+        } satisfies Config;
+        ```
+
+**Phase 3: Implement Frontend (Client)**
+
+Create the basic frontend files.
+
+1.  **Create the main HTML file:**
+    -   **Path:** `/client/index.html`
+    -   **Content:**
+        ```html
+        <!doctype html>
+        <html lang="uz">
+          <head>
+            <meta charset="UTF-8" />
+            <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <title>Evolvo.uz - AI Biznes Yechimlari</title>
+          </head>
+          <body>
+            <div id="root"></div>
+            <script type="module" src="/src/main.tsx"></script>
+          </body>
+        </html>
+        ```
+
+2.  **Create the main CSS file for Tailwind:**
+    -   **Path:** `/client/src/index.css`
+    -   **Content:**
+        ```css
+        @tailwind base;
+        @tailwind components;
+        @tailwind utilities;
+        ```
+
+3.  **Create the main React entrypoint:**
+    -   **Path:** `/client/src/main.tsx`
+    -   **Content:**
+        ```typescript
+        import React from 'react';
+        import ReactDOM from 'react-dom/client';
+        import App from './App';
+        import './index.css';
+        import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+        const queryClient = new QueryClient();
+
+        ReactDOM.createRoot(document.getElementById('root')!).render(
+          <React.StrictMode>
+            <QueryClientProvider client={queryClient}>
+              <App />
+            </QueryClientProvider>
+          </React.StrictMode>
+        );
+        ```
+
+4.  **Create the main App component:**
+    -   **Path:** `/client/src/App.tsx`
+    -   **Content:**
+        ```typescript
+        import { useEffect, useState } from 'react';
+
+        function App() {
+          const [serverStatus, setServerStatus] = useState('Loading...');
+
+          useEffect(() => {
+            fetch('/api/health')
+              .then((res) => {
+                if (!res.ok) throw new Error('Network response was not ok');
+                return res.json();
+              })
+              .then((data) => setServerStatus(data.message))
+              .catch(() => setServerStatus('Failed to connect to the server.'));
+          }, []);
+
+          return (
+            <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white font-sans">
+              <div className="text-center p-8 border border-gray-700 rounded-lg shadow-2xl bg-gray-800">
+                <h1 className="text-5xl font-bold text-cyan-400">EVOLVO.UZ</h1>
+                <p className="mt-2 text-xl text-gray-300">AI-asoslangan biznes yechimlari platformasi</p>
+                <div className="mt-6 pt-6 border-t border-gray-600">
+                  <p className="text-lg">Server Holati:</p>
+                  <p className="text-2xl font-semibold text-green-400 mt-1">{serverStatus}</p>
+                </div>
+              </div>
+            </div>
+          );
+        }
+
+        export default App;
+        ```
+
+**Phase 4: Install All Dependencies**
+
+Finally, install all the required npm packages for all workspaces.
+
+Install the following dependencies:
+
+1.  **For the server workspace (`/server`):**
+    -   **Production:** `express`, `cors`, `helmet`, `jsonwebtoken`, `bcrypt`, `drizzle-orm`, `postgres`, `dotenv`
+    -   **Development:** `@types/express`, `@types/cors`, `@types/jsonwebtoken`, `@types/bcrypt`, `typescript`, `tsx`, `tsup`
+
+2.  **For the client workspace (`/client`):**
+    -   **Production:** `react`, `react-dom`, `wouter`, `@tanstack/react-query`, `react-hook-form`, `zod`, `lucide-react`, `tailwind-merge`, `clsx`, `tailwindcss-animate`
+    -   **Development:** `@types/react`, `@types/react-dom`, `@vitejs/plugin-react`, `typescript`, `vite`, `tailwindcss`, `postcss`, `autoprefixer`
+    
+3. **For the root workspace (`/`):**
+    - **Development:** `drizzle-kit`
+
+After creating all these files and directories, run the installation commands.
+
+This comprehensive setup should create a fully configured, runnable monorepo project.
