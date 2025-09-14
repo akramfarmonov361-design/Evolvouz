@@ -2,8 +2,9 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { adminLogin, adminLogout, getCurrentAdmin, authenticateAdmin } from "./adminAuth";
 import { generateBusinessRecommendations, generateServiceContent } from "./services/openai";
-import { insertServiceSchema, insertRecommendationSchema, insertInquirySchema } from "@shared/schema";
+import { insertServiceSchema, insertRecommendationSchema, insertInquirySchema, insertOrderSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -21,6 +22,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch user" });
     }
   });
+
+  // Admin authentication routes
+  app.post('/api/auth/login', adminLogin);
+  app.post('/api/auth/logout', adminLogout);
+  app.get('/api/auth/admin', authenticateAdmin, getCurrentAdmin);
 
   // Service routes
   app.get('/api/services', async (req, res) => {
@@ -49,14 +55,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Protected admin routes
-  app.post('/api/services', isAuthenticated, async (req: any, res) => {
+  // Public order creation endpoint
+  app.post('/api/orders', async (req, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
-      if (user?.role !== 'admin') {
-        return res.status(403).json({ message: "Admin access required" });
+      const validatedData = insertOrderSchema.parse(req.body);
+      const order = await storage.createOrder(validatedData);
+      res.status(201).json(order);
+    } catch (error) {
+      console.error("Error creating order:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
       }
+      res.status(500).json({ message: "Failed to create order" });
+    }
+  });
 
+  // Protected admin routes
+  app.post('/api/services', authenticateAdmin, async (req: any, res) => {
+    try {
       const validatedData = insertServiceSchema.parse(req.body);
       const service = await storage.createService(validatedData);
       res.status(201).json(service);
@@ -69,13 +85,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/services/:id', isAuthenticated, async (req: any, res) => {
+  app.put('/api/services/:id', authenticateAdmin, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
-      if (user?.role !== 'admin') {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
       const service = await storage.updateService(req.params.id, req.body);
       res.json(service);
     } catch (error) {
@@ -84,13 +95,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/services/:id', isAuthenticated, async (req: any, res) => {
+  app.delete('/api/services/:id', authenticateAdmin, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
-      if (user?.role !== 'admin') {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
       await storage.deleteService(req.params.id);
       res.status(204).send();
     } catch (error) {
@@ -175,13 +181,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/inquiries', isAuthenticated, async (req: any, res) => {
+  app.get('/api/inquiries', authenticateAdmin, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
-      if (user?.role !== 'admin') {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
       const inquiries = await storage.getInquiries();
       res.json(inquiries);
     } catch (error) {
@@ -190,13 +191,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/inquiries/:id/status', isAuthenticated, async (req: any, res) => {
+  app.put('/api/inquiries/:id/status', authenticateAdmin, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
-      if (user?.role !== 'admin') {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
       const { status } = req.body;
       const inquiry = await storage.updateInquiryStatus(req.params.id, status);
       res.json(inquiry);
@@ -207,13 +203,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // AI Service Content Generation (Admin only)
-  app.post('/api/ai/generate-service', isAuthenticated, async (req: any, res) => {
+  app.post('/api/ai/generate-service', authenticateAdmin, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
-      if (user?.role !== 'admin') {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
       const { serviceType, language } = req.body;
       const content = await generateServiceContent(serviceType, language);
       res.json(content);
