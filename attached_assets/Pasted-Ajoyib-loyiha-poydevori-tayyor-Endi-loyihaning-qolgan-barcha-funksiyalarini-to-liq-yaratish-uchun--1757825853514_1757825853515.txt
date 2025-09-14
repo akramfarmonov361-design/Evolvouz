@@ -1,0 +1,28 @@
+Ajoyib, loyiha poydevori tayyor. Endi loyihaning qolgan barcha funksiyalarini to'liq yaratish uchun quyidagi umumlashtirilgan topshiriqni bajar.
+
+**1. Backend'ni To'liq Qurib Bitirish:**
+
+* **Ma'lumotlar Bazasi Sxemasi:** `shared/schema.ts` faylini ochib, texnik hujjatda keltirilgan barcha jadvallar (`users`, `services`, `orders`, `blog_posts`, `clients`) uchun Drizzle ORM sxemalarini to'liq yozib chiq.
+* **API Endpoint'lar:** Mijozlar va adminlar uchun zarur bo'lgan barcha API endpoint'larini yarat:
+    * **Ommaviy:** Xizmatlar ro'yxatini (`GET /api/services`) va bitta xizmat ma'lumotini (`GET /api/services/:id`) olish, hamda yangi buyurtma yaratish (`POST /api/orders`) uchun endpoint'lar.
+    * **Admin:** Xizmatlar, buyurtmalar, mijozlar va blog postlari ustida to'liq CRUD (Create, Read, Update, Delete) amallarini bajarish uchun himoyalangan endpoint'lar.
+* **Admin Autentifikatsiyasi:** `bcrypt` va `jsonwebtoken` yordamida to'liq autentifikatsiya tizimini yarat. `POST /api/auth/login` endpoint'i orqali admin tizimga kirsin. Muvaffaqiyatli kirishda, JWT tokenni xavfsiz `httpOnly` cookie'ga saqla. Barcha admin endpoint'larini faqat tizimga kirgan foydalanuvchilar ishlata olishi uchun himoya middleware'ini yarat va qo'lla.
+
+**2. Frontend Interfeysini To'liq Ishlab Chiqish:**
+
+* **Asosiy Struktura va Routing:** `wouter` yordamida loyihaning barcha sahifalari (`Bosh sahifa`, `Xizmatlar`, `Blog`, `Portfolio`, `Buyurtma Berish`, `Admin Login`) uchun marshrutlashni (routing) sozla. Umumiy dizayn uchun `Header`, `Footer` va `Layout` komponentlarini yarat.
+* **Sahifalarni Ma'lumot Bilan To'ldirish:** Backend'dan ma'lumotlarni olish uchun `@tanstack/react-query` dan faol foydalan. `Xizmatlar` va `Blog` sahifalarida ma'lumotlarni API'dan olib, chiroyli dizayndagi kartochkalar (`ServiceCard`, `PostCard`) yordamida ekranga chiqaz.
+* **Interaktiv Elementlar:** `react-hook-form` va `zod` yordamida `Buyurtma Berish` sahifasi uchun to'liq validatsiyaga ega forma yarat. Forma to'g'ri to'ldirilgach, ma'lumotlarni `POST /api/orders` endpoint'iga yubor.
+
+**3. AI Integratsiyalari va Avtomatlashtirish Tizimini Yaratish:**
+
+* **Tashqi Servislar:** Backend'da `Google Gemini`, `Unsplash` va `Telegram Bot` API'lari bilan ishlash uchun alohida servis modullarini yarat. Barcha API kalitlari va tokenlar `.env` faylidan olinishi shart.
+* **Avtomatik Xabarnoma:** Yangi buyurtma kelib tushganda, Telegram bot orqali belgilangan admin kanaliga avtomatik xabar yuborish funksiyasini ishga tushir.
+* **Kontent Generatsiyasi:** Blog postlarini avtomatik yaratish uchun maxsus, himoyalangan `scheduler` endpoint'ini yarat. Bu endpoint chaqirilganda, u Gemini yordamida yangi maqola generatsiya qilsin, Unsplash'dan unga mos rasm topsin va natijani ma'lumotlar bazasiga `scheduled` statusi bilan saqlasin.
+
+**4. Admin Panelini To'liq Ishga Tushirish:**
+
+* **Kirish Tizimi:** Admin uchun login sahifasini (`AdminLoginPage.tsx`) yarat. Muvaffaqiyatli kirishdan so'ng, adminni boshqaruv paneliga (`/admin/dashboard`) yo'naltir.
+* **Boshqaruv Sahifalari:** Admin panelining ichida buyurtmalarni, xizmatlarni va blog postlarini ko'rish, tahrirlash va o'chirish uchun alohida sahifalar yarat. Bu sahifalar backend'dagi himoyalangan admin API endpoint'laridan ma'lumotlarni olib, ular ustida amallar bajarish imkonini bersin.
+
+Ushbu topshiriqlar bajarilgandan so'ng, Evolvo.uz platformasi to'liq ishlaydigan, ma'lumotlar bazasiga ulangan, xavfsiz admin paneliga va avtomatlashtirilgan kontent yaratish tizimiga ega bo'lishi kerak.
