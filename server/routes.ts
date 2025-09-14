@@ -4,6 +4,9 @@ import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { adminLogin, adminLogout, getCurrentAdmin, authenticateAdmin, loginRateLimit } from "./adminAuth";
 import { generateBusinessRecommendations, generateServiceContent } from "./services/openai";
+import { generateBlogPost, generateServiceRecommendations } from "./services/gemini";
+import { searchImages, getImageForTopic, getFeaturedImages, trackImageDownload } from "./services/unsplash";
+import { sendOrderNotification, sendBlogNotification, testTelegramConnection } from "./services/telegram";
 import { insertServiceSchema, insertRecommendationSchema, insertInquirySchema, insertOrderSchema, publicInsertOrderSchema, insertBlogPostSchema, insertClientSchema, updateServiceSchema, updateOrderSchema, updateClientSchema, updateBlogPostSchema } from "@shared/schema";
 import { z } from "zod";
 
@@ -95,6 +98,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       
       const order = await storage.createOrder(orderData);
+      
+      // Send Telegram notification (async, don't fail if Telegram fails)
+      try {
+        if (publicData.serviceId) {
+          const service = await storage.getService(publicData.serviceId);
+          if (service) {
+            const notification = {
+              orderId: order.id,
+              serviceName: service.title,
+              clientName: publicData.clientName,
+              clientEmail: publicData.clientEmail,
+              clientPhone: publicData.clientPhone || undefined,
+              companyName: publicData.companyName || undefined,
+              projectDescription: publicData.projectDescription || '',
+              budget: publicData.budget || '',
+              timeline: publicData.timeline || '',
+              createdAt: new Date()
+            };
+          
+            // Send notification but don't await (fire and forget)
+            sendOrderNotification(notification, 'uz').catch(error => {
+              console.warn('Failed to send Telegram notification:', error.message);
+            });
+          }
+        }
+      } catch (notificationError) {
+        console.warn('Failed to prepare order notification:', (notificationError as Error).message);
+      }
+      
       res.status(201).json(order);
     } catch (error) {
       console.error("Error creating order:", error);
@@ -507,6 +539,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error generating service content:", error);
       res.status(500).json({ message: "Failed to generate service content" });
+    }
+  });
+
+  // Gemini AI Blog Generation (Admin only)
+  app.post('/api/ai/generate-blog', authenticateAdmin, async (req: any, res) => {
+    try {
+      const { topic, language } = req.body;
+      
+      if (!topic || typeof topic !== 'string') {
+        return res.status(400).json({ message: "Topic is required" });
+      }
+      
+      const blogContent = await generateBlogPost(topic, language || 'uz');
+      
+      // Optionally get a featured image for the blog post
+      const featuredImage = await getImageForTopic(topic, language || 'uz');
+      
+      res.json({
+        ...blogContent,
+        featuredImageUrl: featuredImage?.url || null,
+        featuredImageDescription: featuredImage?.description || null
+      });
+    } catch (error) {
+      console.error("Error generating blog post:", error);
+      res.status(500).json({ message: "Failed to generate blog post" });
+    }
+  });
+
+  // Unsplash Image Search
+  app.get('/api/images/search', async (req, res) => {
+    try {
+      const { query, count = 12, orientation = 'landscape' } = req.query;
+      
+      if (!query || typeof query !== 'string') {
+        return res.status(400).json({ message: "Search query is required" });
+      }
+      
+      const images = await searchImages({
+        query,
+        count: parseInt(count as string),
+        orientation: orientation as any
+      });
+      
+      res.json(images);
+    } catch (error) {
+      console.error("Error searching images:", error);
+      res.status(500).json({ message: "Failed to search images" });
+    }
+  });
+
+  // Get featured images for homepage/categories
+  app.get('/api/images/featured', async (req, res) => {
+    try {
+      const { category = 'business' } = req.query;
+      const images = await getFeaturedImages(category as string);
+      res.json(images);
+    } catch (error) {
+      console.error("Error fetching featured images:", error);
+      res.status(500).json({ message: "Failed to fetch featured images" });
+    }
+  });
+
+  // Track image download for Unsplash attribution
+  app.post('/api/images/:id/download', async (req, res) => {
+    try {
+      const { id } = req.params;
+      await trackImageDownload(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error tracking image download:", error);
+      res.status(500).json({ message: "Failed to track download" });
+    }
+  });
+
+  // Telegram Bot Status (Admin only)
+  app.get('/api/telegram/status', authenticateAdmin, async (req: any, res) => {
+    try {
+      const status = await testTelegramConnection();
+      res.json(status);
+    } catch (error) {
+      console.error("Error checking Telegram status:", error);
+      res.status(500).json({ message: "Failed to check Telegram status" });
     }
   });
 

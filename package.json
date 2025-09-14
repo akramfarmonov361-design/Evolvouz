@@ -11,6 +11,7 @@
     "db:push": "drizzle-kit push"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@hookform/resolvers": "^3.10.0",
     "@jridgewell/trace-mapping": "^0.3.25",
     "@neondatabase/serverless": "^0.10.4",
@@ -46,6 +47,7 @@
     "@types/cookie-parser": "^1.4.9",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/memoizee": "^0.4.12",
+    "@types/node-fetch": "^2.6.13",
     "@types/pg": "^8.15.5",
     "bcrypt": "^6.0.0",
     "class-variance-authority": "^0.7.1",
@@ -67,6 +69,7 @@
     "memoizee": "^0.4.17",
     "memorystore": "^1.6.7",
     "next-themes": "^0.4.6",
+    "node-fetch": "^3.3.2",
     "openai": "^5.20.2",
     "openid-client": "^6.8.0",
     "passport": "^0.7.0",
