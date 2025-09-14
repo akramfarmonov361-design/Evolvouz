@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Navigation from "@/components/Navigation";
 import type { Service } from "@shared/schema";
+import { publicInsertOrderSchema, type PublicInsertOrder } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -23,12 +24,11 @@ import {
   Building
 } from "lucide-react";
 
-const orderSchema = z.object({
-  serviceId: z.string().min(1, "Service is required"),
-  clientName: z.string().min(2, "Name must be at least 2 characters"),
-  clientEmail: z.string().email("Please enter a valid email"),
-  clientPhone: z.string().min(10, "Phone number must be at least 10 characters"),
-  companyName: z.string().optional(),
+// Use shared schema for consistency with backend, with form-friendly types
+const orderSchema = publicInsertOrderSchema.extend({
+  // Ensure optional fields are strings, not nullable for form inputs
+  clientPhone: z.string().optional(),
+  companyName: z.string().optional(), 
   projectDescription: z.string().min(10, "Please provide a detailed description"),
   budget: z.string().min(1, "Budget is required"),
   timeline: z.string().min(1, "Timeline is required"),
@@ -149,7 +149,7 @@ export default function Order() {
                         <FormLabel data-testid="label-service">
                           {isUzbek ? "Xizmatni tanlang" : "Select Service"} *
                         </FormLabel>
-                        <Select onValueChange={handleServiceSelect} value={field.value}>
+                        <Select onValueChange={handleServiceSelect} value={field.value ?? ''}>
                           <FormControl>
                             <SelectTrigger data-testid="select-service">
                               <SelectValue placeholder={isUzbek ? "Xizmatni tanlang" : "Choose a service"} />

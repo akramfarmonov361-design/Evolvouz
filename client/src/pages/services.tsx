@@ -17,7 +17,7 @@ export default function Services() {
   
   const isUzbek = language === 'uz';
 
-  const { data: services = [], isLoading } = useQuery({
+  const { data: services = [], isLoading } = useQuery<Service[]>({
     queryKey: ["/api/services"],
   });
 
@@ -36,7 +36,7 @@ export default function Services() {
     return matchesSearch && matchesCategory;
   });
 
-  const categories = ['all', ...new Set(services.map((s: Service) => s.category).filter(Boolean))];
+  const categories = ['all', ...Array.from(new Set(services.map((s: Service) => s.category).filter(Boolean)))];
 
   const handleServiceDetails = (service: Service) => {
     setSelectedService(service);

@@ -16,11 +16,11 @@ export default function Landing() {
   
   const isUzbek = language === 'uz';
 
-  const { data: services = [] } = useQuery({
+  const { data: services = [] } = useQuery<Service[]>({
     queryKey: ["/api/services"],
   });
 
-  const categories = ['all', ...new Set(services.map((s: Service) => s.category).filter(Boolean))];
+  const categories = ['all', ...Array.from(new Set(services.map((s: Service) => s.category).filter(Boolean) as string[]))];
   
   const filteredServices = selectedCategory === 'all' 
     ? services 
