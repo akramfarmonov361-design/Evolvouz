@@ -1,0 +1,34 @@
+Hello. I want you to build the foundational structure for a new full-stack project called "Evolvo.uz". Please follow these instructions to set up the project environment. Do not ask for high-level details, just execute these technical setup tasks.
+
+**1. Project Structure:**
+Create a monorepo structure with two main workspaces: a `client` directory for the frontend application and a `server` directory for the backend application. There should also be a root-level `package.json` to manage these workspaces.
+
+**2. Package Manager Configuration:**
+-   **Root `package.json`:** Configure it to manage the `client` and `server` workspaces. Add scripts for `dev`, `build`, and `start` that will run the corresponding commands in both workspaces concurrently.
+-   **Server `package.json`:** Set this up for a TypeScript and Node.js application. The main entry point should be `dist/index.js` after building. Include a `dev` script to run the server with `tsx` for live reloading, a `build` script using `tsup` to compile TypeScript to JavaScript, and a `start` script to run the compiled application.
+-   **Client `package.json`:** Configure this for a React and Vite application using TypeScript. Include a `dev` script to start the Vite development server, a `build` script to compile the TypeScript and build the application with Vite, and a `preview` script.
+
+**3. Install Dependencies:**
+Please install the necessary libraries for each workspace.
+-   **For the Server (Production):** Install `express`, `cors`, `helmet`, `jsonwebtoken` for authentication, `bcrypt` for password hashing, `drizzle-orm` and `postgres` for the database, and `dotenv` for environment variables.
+-   **For the Server (Development):** Install `@types/express`, `@types/cors`, `@types/jsonwebtoken`, `@types/bcrypt`, `typescript`, `tsx`, `tsup`, and `drizzle-kit`.
+-   **For the Client (Production):** Install `react`, `react-dom`, `wouter` for routing, `@tanstack/react-query` for server state management, `react-hook-form` and `zod` for form handling and validation, `lucide-react` for icons, and utility libraries like `tailwind-merge`, `clsx`, and `tailwindcss-animate`.
+-   **For the Client (Development):** Install `@types/react`, `@types/react-dom`, `@vitejs/plugin-react`, `typescript`, `vite`, `tailwindcss`, `postcss`, and `autoprefixer`.
+
+**4. TypeScript Configuration:**
+Set up `tsconfig.json` files for both the client and server.
+-   **For the Server:** Configure it for a CommonJS module system, with the source code in a `src` directory and the compiled output in a `dist` directory. Enable strict type checking.
+-   **For the Client:** Configure it for an ESNext module system, suitable for Vite and modern browsers. Enable JSX, strict type checking, and set up a path alias so that `@/*` resolves to `./src/*`.
+
+**5. Styling and Build Tool Configuration:**
+-   Create a `vite.config.ts` file for the client. Configure it to use the React plugin. Crucially, set up a server proxy so that any request to `/api` is forwarded to the backend server, which will be running on `http://localhost:5000`.
+-   Set up `tailwind.config.js` and `postcss.config.js` for Tailwind CSS integration in the client application.
+
+**6. Initial Application Code ("Hello World"):**
+-   **Backend:** Create a basic Express server in `/server/src/index.ts`. It should use the `cors` and `helmet` middlewares. Create a single GET endpoint at `/api/health` that returns a JSON object with a success message, for example, `{ "status": "Server is running!" }`. The server should listen on the port specified by the environment or default to 5000.
+-   **Frontend:** Create a basic React application. The main `App.tsx` component should use `useEffect` to make a fetch request to the `/api/health` endpoint on component mount. It should then display the status message received from the server on the screen. Style the page using basic Tailwind CSS classes to center the content and make it look presentable.
+
+**7. Replit Configuration:**
+Finally, create a `.replit` file. Configure the `run` command to install all dependencies and then run the main `dev` script from the root `package.json`.
+
+After completing all these steps, the project should be fully set up and runnable.
