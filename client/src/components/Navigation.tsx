@@ -24,14 +24,14 @@ export default function Navigation({ language, onLanguageChange }: NavigationPro
       active: location.startsWith("/services")
     },
     { 
-      href: "#about", 
-      label: isUzbek ? "Haqida" : "About",
-      active: false
+      href: "/blog", 
+      label: isUzbek ? "Blog" : "Blog",
+      active: location.startsWith("/blog")
     },
     { 
-      href: "#contact", 
-      label: isUzbek ? "Aloqa" : "Contact",
-      active: false
+      href: "/portfolio", 
+      label: isUzbek ? "Portfolio" : "Portfolio",
+      active: location.startsWith("/portfolio")
     },
   ];
 
