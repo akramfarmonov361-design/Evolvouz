@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Navigation from "@/components/Navigation";
+import type { User, Service, AiRecommendation } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -46,12 +47,12 @@ export default function Home() {
     }
   }, [isAuthenticated, isLoading, toast, isUzbek]);
 
-  const { data: recommendations = [] } = useQuery({
+  const { data: recommendations = [] } = useQuery<AiRecommendation[]>({
     queryKey: ["/api/recommendations"],
     enabled: isAuthenticated,
   });
 
-  const { data: services = [] } = useQuery({
+  const { data: services = [] } = useQuery<Service[]>({
     queryKey: ["/api/services"],
   });
 
@@ -376,7 +377,7 @@ export default function Home() {
 
             {recommendations.length > 0 ? (
               <div className="space-y-4">
-                {recommendations.slice(0, 3).map((recommendation: any, index: number) => (
+                {recommendations.slice(0, 3).map((recommendation, index: number) => (
                   <Card key={recommendation.id || index}>
                     <CardHeader>
                       <div className="flex items-center justify-between">
@@ -385,9 +386,9 @@ export default function Home() {
                         </CardTitle>
                         <Badge variant="secondary">
                           <Clock className="w-3 h-3 mr-1" />
-                          {new Date(recommendation.createdAt).toLocaleDateString(
+                          {recommendation.createdAt ? new Date(recommendation.createdAt).toLocaleDateString(
                             isUzbek ? 'uz-UZ' : 'en-US'
-                          )}
+                          ) : new Date().toLocaleDateString(isUzbek ? 'uz-UZ' : 'en-US')}
                         </Badge>
                       </div>
                     </CardHeader>
@@ -415,8 +416,8 @@ export default function Home() {
                               {isUzbek ? "Tavsiya etilgan xizmatlar:" : "Recommended Services:"}
                             </span>
                             <div className="flex flex-wrap gap-2 mt-1">
-                              {recommendation.recommendedServices.slice(0, 3).map((serviceId: string, idx: number) => {
-                                const service = services.find((s: any) => s.id === serviceId);
+                              {recommendation.recommendedServices?.slice(0, 3).map((serviceId: string, idx: number) => {
+                                const service = services.find((s) => s.id === serviceId);
                                 return service ? (
                                   <Badge key={serviceId} variant="outline">
                                     {isUzbek ? service.title : (service.titleEn || service.title)}
@@ -507,7 +508,7 @@ export default function Home() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {services.slice(0, 3).map((service: any) => (
+                {services.slice(0, 3).map((service) => (
                   <div key={service.id} className="flex items-center space-x-3 py-2">
                     <div className="w-2 h-2 bg-accent rounded-full flex-shrink-0"></div>
                     <div className="flex-1 min-w-0">
