@@ -32,6 +32,7 @@ export interface IStorage {
   
   // Service operations
   getServices(): Promise<Service[]>;
+  getAllServices(): Promise<Service[]>;
   getServicesByCategory(category: string): Promise<Service[]>;
   getService(id: string): Promise<Service | undefined>;
   createService(service: InsertService): Promise<Service>;
@@ -108,6 +109,10 @@ export class DatabaseStorage implements IStorage {
   // Service operations
   async getServices(): Promise<Service[]> {
     return await db.select().from(services).where(eq(services.isActive, true)).orderBy(desc(services.createdAt));
+  }
+
+  async getAllServices(): Promise<Service[]> {
+    return await db.select().from(services).orderBy(desc(services.createdAt));
   }
 
   async getServicesByCategory(category: string): Promise<Service[]> {

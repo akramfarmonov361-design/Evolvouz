@@ -105,6 +105,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Public blog endpoints
+  app.get('/api/blog-posts', async (req, res) => {
+    try {
+      const blogPosts = await storage.getPublishedBlogPosts();
+      res.json(blogPosts);
+    } catch (error) {
+      console.error("Error fetching published blog posts:", error);
+      res.status(500).json({ message: "Failed to fetch blog posts" });
+    }
+  });
+
+  app.get('/api/blog-posts/:slug', async (req, res) => {
+    try {
+      const { slug } = req.params;
+      
+      // Validate slug parameter
+      if (!slug || typeof slug !== 'string' || slug.trim() === '') {
+        return res.status(400).json({ message: "Invalid blog post slug" });
+      }
+      
+      const blogPost = await storage.getBlogPostBySlug(slug);
+      if (!blogPost) {
+        return res.status(404).json({ message: "Blog post not found" });
+      }
+      
+      // Security: Only return published blog posts to public
+      if (blogPost.status !== 'published') {
+        return res.status(404).json({ message: "Blog post not found" });
+      }
+      
+      res.json(blogPost);
+    } catch (error) {
+      console.error("Error fetching blog post:", error);
+      res.status(500).json({ message: "Failed to fetch blog post" });
+    }
+  });
+
+  app.post('/api/blog-posts/:id/view', async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Validate ID parameter
+      if (!id || typeof id !== 'string' || id.trim() === '') {
+        return res.status(400).json({ message: "Invalid blog post ID" });
+      }
+      
+      // Check if blog post exists and is published before incrementing view count
+      const blogPost = await storage.getBlogPost(id);
+      if (!blogPost || blogPost.status !== 'published') {
+        return res.status(404).json({ message: "Blog post not found" });
+      }
+      
+      await storage.incrementViewCount(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error incrementing view count:", error);
+      res.status(500).json({ message: "Failed to increment view count" });
+    }
+  });
+
   // Protected admin routes
   app.post('/api/services', authenticateAdmin, async (req: any, res) => {
     try {
@@ -147,7 +207,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin GET services (includes all services, even inactive)
   app.get('/api/admin/services', authenticateAdmin, async (req: any, res) => {
     try {
-      const services = await storage.getServices();
+      const services = await storage.getAllServices();
       res.json(services);
     } catch (error) {
       console.error("Error fetching all services:", error);
