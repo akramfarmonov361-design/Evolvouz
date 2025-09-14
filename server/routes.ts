@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { adminLogin, adminLogout, getCurrentAdmin, authenticateAdmin } from "./adminAuth";
 import { generateBusinessRecommendations, generateServiceContent } from "./services/openai";
-import { insertServiceSchema, insertRecommendationSchema, insertInquirySchema, insertOrderSchema } from "@shared/schema";
+import { insertServiceSchema, insertRecommendationSchema, insertInquirySchema, insertOrderSchema, publicInsertOrderSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -32,10 +32,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/services', async (req, res) => {
     try {
       const { category } = req.query;
-      const services = category 
+      
+      // Validate category parameter if provided
+      if (category && (typeof category !== 'string' || category.trim() === '')) {
+        return res.status(400).json({ message: "Invalid category parameter" });
+      }
+      
+      // Get services and filter for active ones only
+      const allServices = category 
         ? await storage.getServicesByCategory(category as string)
         : await storage.getServices();
-      res.json(services);
+      
+      // Security: Only return active services to public
+      const activeServices = allServices.filter(service => service.isActive === true);
+      
+      res.json(activeServices);
     } catch (error) {
       console.error("Error fetching services:", error);
       res.status(500).json({ message: "Failed to fetch services" });
@@ -44,10 +55,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/services/:id', async (req, res) => {
     try {
-      const service = await storage.getService(req.params.id);
+      const { id } = req.params;
+      
+      // Validate ID parameter
+      if (!id || typeof id !== 'string' || id.trim() === '') {
+        return res.status(400).json({ message: "Invalid service ID" });
+      }
+      
+      const service = await storage.getService(id);
       if (!service) {
         return res.status(404).json({ message: "Service not found" });
       }
+      
+      // Security: Only return active services to public
+      if (service.isActive !== true) {
+        return res.status(404).json({ message: "Service not found" });
+      }
+      
       res.json(service);
     } catch (error) {
       console.error("Error fetching service:", error);
@@ -58,8 +82,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Public order creation endpoint
   app.post('/api/orders', async (req, res) => {
     try {
-      const validatedData = insertOrderSchema.parse(req.body);
-      const order = await storage.createOrder(validatedData);
+      // Validate only safe public fields
+      const publicData = publicInsertOrderSchema.parse(req.body);
+      
+      // Explicitly set server-controlled fields for security
+      const orderData = {
+        ...publicData,
+        status: 'pending' as const,
+        priority: 'medium' as const,
+        // userId and clientId are intentionally omitted - will be null for public orders
+        // notes is intentionally omitted - internal use only
+      };
+      
+      const order = await storage.createOrder(orderData);
       res.status(201).json(order);
     } catch (error) {
       console.error("Error creating order:", error);

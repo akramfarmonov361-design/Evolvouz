@@ -248,6 +248,19 @@ export const insertOrderSchema = createInsertSchema(orders).omit({
   updatedAt: true,
 });
 
+// Public-safe order creation schema - only allows fields that clients should control
+export const publicInsertOrderSchema = createInsertSchema(orders).pick({
+  serviceId: true,
+  clientName: true,
+  clientEmail: true,
+  clientPhone: true,
+  companyName: true,
+  projectDescription: true,
+  budget: true,
+  timeline: true,
+  requirements: true,
+});
+
 export const insertBlogPostSchema = createInsertSchema(blogPosts).omit({
   id: true,
   createdAt: true,
@@ -271,6 +284,7 @@ export type ServiceInquiry = typeof serviceInquiries.$inferSelect;
 export type InsertInquiry = z.infer<typeof insertInquirySchema>;
 export type Order = typeof orders.$inferSelect;
 export type InsertOrder = z.infer<typeof insertOrderSchema>;
+export type PublicInsertOrder = z.infer<typeof publicInsertOrderSchema>;
 export type BlogPost = typeof blogPosts.$inferSelect;
 export type InsertBlogPost = z.infer<typeof insertBlogPostSchema>;
 export type Client = typeof clients.$inferSelect;
