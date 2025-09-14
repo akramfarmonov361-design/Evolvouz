@@ -273,6 +273,31 @@ export const insertClientSchema = createInsertSchema(clients).omit({
   updatedAt: true,
 });
 
+// Update schemas for PUT endpoints - partial and omit server-controlled fields
+export const updateServiceSchema = createInsertSchema(services).partial().omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateOrderSchema = createInsertSchema(orders).partial().omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateClientSchema = createInsertSchema(clients).partial().omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateBlogPostSchema = createInsertSchema(blogPosts).partial().omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type UpsertUser = z.infer<typeof upsertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -287,5 +312,9 @@ export type InsertOrder = z.infer<typeof insertOrderSchema>;
 export type PublicInsertOrder = z.infer<typeof publicInsertOrderSchema>;
 export type BlogPost = typeof blogPosts.$inferSelect;
 export type InsertBlogPost = z.infer<typeof insertBlogPostSchema>;
+export type UpdateBlogPost = z.infer<typeof updateBlogPostSchema>;
 export type Client = typeof clients.$inferSelect;
 export type InsertClient = z.infer<typeof insertClientSchema>;
+export type UpdateClient = z.infer<typeof updateClientSchema>;
+export type UpdateService = z.infer<typeof updateServiceSchema>;
+export type UpdateOrder = z.infer<typeof updateOrderSchema>;
