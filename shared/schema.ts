@@ -219,6 +219,12 @@ export const insertUserSchema = createInsertSchema(users).omit({
   updatedAt: true,
 });
 
+// Special upsert schema for users that includes id (required for Replit Auth)
+export const upsertUserSchema = createInsertSchema(users).omit({
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertServiceSchema = createInsertSchema(services).omit({
   id: true,
   createdAt: true,
@@ -254,7 +260,7 @@ export const insertClientSchema = createInsertSchema(clients).omit({
 });
 
 // Types
-export type UpsertUser = z.infer<typeof insertUserSchema>;
+export type UpsertUser = z.infer<typeof upsertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type Service = typeof services.$inferSelect;
 export type InsertService = z.infer<typeof insertServiceSchema>;
