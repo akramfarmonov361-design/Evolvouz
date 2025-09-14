@@ -1,0 +1,43 @@
+Evolvo.uz Uchun To'liq Dizayn va UI/UX Ko'rsatmasi Prompti
+Ajoyib, loyihaning barcha funksiyalari ishlamoqda. Endi keling, uning dizaynini premium texnologiya brendi darajasiga olib chiqamiz. Maqsadimiz — foydalanuvchida ishonch uyg'otadigan, zamonaviy, estetik jihatdan yoqimli va intuitiv tushunarli interfeys yaratish.
+
+Quyidagi dizayn tizimiga qat'iy amal qil:
+
+**1. Umumiy Mavzu va Atmosfera:**
+* **Dark Mode (Qorong'u Rejim):** Butun veb-sayt uchun chuqur, qorong'u rejimdan foydalan. Bu texnologik va jiddiy ko'rinish beradi.
+* **Minimalizm:** Ortiqcha elementlardan qoch. Har bir komponent atrofida yetarlicha bo'sh joy ("havo") qoldir. Interfeys toza va tartibli bo'lishi kerak.
+* **Futuristik Akcentlar:** Dizaynga sun'iy intellekt mavzusini aks ettiruvchi nozik elementlar qo'sh. Buni gradientlar, yorug'lik effektlari va silliq animatsiyalar orqali amalga oshir.
+
+**2. Ranglar Palitrasi (Tailwind CSS klasslari bilan):**
+* **Asosiy Fon:** `bg-slate-900` (Juda qora emas, yoqimli to'q kulrang).
+* **Kartochkalar Foni:** `bg-slate-800` (Asosiy fondan bir oz yorqinroq, chuqurlik hissini berish uchun).
+* **Asosiy Matn Rangi:** `text-slate-300` (Ko'zga yoqimli, oqdan ko'ra yumshoqroq).
+* **Sarlavha va Muhim Matnlar:** `text-slate-100` yoki `text-white`.
+* **Asosiy Akcent (Brend Rangi):** **Gradient**'dan foydalanamiz. `from-cyan-400 to-teal-500`. Bu gradientni tugmalar, sarlavhalar ostidagi chiziqlar va muhim ikonkalar uchun ishlat.
+* **Chegaralar (Borders):** `border-slate-700` (Juda bilinmaydigan, faqat elementlarni ajratib turish uchun).
+
+**3. Tipografiya (Matn Stili):**
+* **Shrift:** Butun sayt uchun Google Fonts'dan **"Inter"** shriftini import qil va ishlat. U o'qishga qulay va zamonaviy.
+* **Sarlavhalar (h1, h2):** Qalin (`font-bold` yoki `font-semibold`), harflar orasida ozgina masofa (`tracking-tight`) va akcent rangidagi gradient bilan jozibador ko'rinish ber.
+* **Oddiy Matn (p):** O'lchami standart (`text-base` yoki `text-lg`), qalinligi normal (`font-normal`) va `text-slate-300` rangida bo'lsin.
+
+**4. Interaktiv Elementlar va Mikro-animatsiyalar:**
+* **Tugmalar (Buttons):**
+    * **Asosiy Tugma:** Akcent rangidagi gradient fonga (`bg-gradient-to-r from-cyan-400 to-teal-500`), yumaloq qirralarga (`rounded-lg`) va sichqoncha borganda yengil kattalashish (`hover:scale-105`) va soya (`hover:shadow-lg`) effektiga ega bo'lsin.
+    * **Ikkilamchi Tugma:** Fonsiz, faqat `border-slate-600` chegarasi bo'lsin. Sichqoncha borganda foni `bg-slate-700` bo'lsin.
+* **Kartochkalar (`ServiceCard`, `PostCard`):**
+    * Yumaloq qirralar (`rounded-xl`), nozik chegara (`border border-slate-700`) va ichki masofa (`p-6`).
+    * Sichqoncha borganda yengil yuqoriga ko'tarilsin (`hover:-translate-y-1`) va chegarasi akcent rangida yonib-o'chsin (`hover:border-cyan-400`). Barcha o'zgarishlar silliq (`transition-all duration-300`) bo'lishi shart.
+* **Formalar va Kiritish Maydonlari (Inputs):**
+    * Foni `bg-slate-800`, chegarasi `border-slate-600` bo'lsin.
+    * Fokus qilinganda (ustiga bosilganda) chegara atrofida akcent rangida "yorug'lik halqasi" paydo bo'lsin (`focus:ring-2 focus:ring-cyan-500`).
+
+**5. Ikonkalar va Vizual Elementlar:**
+* Barcha ikonkalarni `lucide-react` kutubxonasidan ol. Ular minimalist va sayt stiliga mos tushadi. Ikonkalar rangi `text-slate-400` yoki akcent rangida bo'lsin.
+* Rasmlar o'rniga, iloji boricha mavhum, texnologik fon rasmlari yoki gradientlardan foydalan. Bu saytga professional ko'rinish beradi.
+
+**6. Layout (Sahifa Tuzilishi):**
+* **Header:** Sahifa pastga aylantirilganda yuqorida qotib qoladigan (`sticky top-0`) va orqa foni yengil shaffof bo'lib, xiralashish effektiga (`backdrop-blur-sm`) ega bo'lsin. Bu zamonaviy ko'rinish beradi.
+* **Asosiy Kontent:** Barcha kontentni markazlashtir va maksimal kenglikni cheklab qo'y (`max-w-7xl mx-auto`), bu katta ekranlarda matnlarni o'qishni osonlashtiradi.
+
+Ushbu dizayn tizimi asosida barcha komponent va sahifalarni qayta stillashtirib chiq. Natijada Evolvo.uz shunchaki ishlaydigan emas, balki foydalanuvchida "Vau!" effektini uyg'otadigan platformaga aylanishi kerak.
